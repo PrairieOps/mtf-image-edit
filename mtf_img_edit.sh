@@ -55,6 +55,7 @@ then
   #mount -o rw,loop,offset=${boot_offset} "${image}" "/mnt/${boot_device}"
   cp -r boot/mtf "/mnt/${boot_device}/"
   cp boot/wpa_supplicant.conf "/mnt/${boot_device}/"
+  cp boot/onboot.sh "/mnt/${boot_device}/"
   touch "/mnt/${boot_device}/ssh"
   umount "/mnt/${boot_device}"
   rmdir "/mnt/${boot_device}"
