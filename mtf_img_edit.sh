@@ -45,13 +45,13 @@ fi
 
 if [ -f "$image" ]
 then
+  loopback=$(losetup --find --partscan --show  ${image})
   # Edit the boot partition
   boot_device="$(fdisk -l ${image} -o 'device,start,type' | grep 'W95 FAT32 (LBA)' | tr -s ' ' | cut -d ' ' -f 1)"
   #boot_start="$(fdisk -l ${image} -o 'device,start,type' | grep 'W95 FAT32 (LBA)' | tr -s ' ' | cut -d ' ' -f 2)"
   #boot_offset=$(($boot_start * 512))
-
   mkdir -p "/mnt/${boot_device}"
-  mount "/dev/$(lsblk -ln /dev/loop1 | grep p2 | cut -d ' ' -f 1)" -o rw "${boot_device}"
+  mount "${loopback}p1" -o rw "/mnt/${boot_device}"
   #mount -o rw,loop,offset=${boot_offset} "${image}" "/mnt/${boot_device}"
   cp -r boot/mtf "/mnt/${boot_device}/"
   cp boot/wpa_supplicant.conf "/mnt/${boot_device}/"
@@ -64,12 +64,14 @@ then
   #root_start="$(fdisk -l ${image} -o 'device,start,type' | grep 'Linux' | tr -s ' ' | cut -d ' ' -f 2)"
   #root_offset=$(($root_start * 512))
   mkdir -p "/mnt/${root_device}"
-  sudo mount "/dev/$(lsblk -ln /dev/loop1 | grep p2 | cut -d ' ' -f 1)" -o rw "${root_device}"
+  sudo mount "${loopback}p2" -o rw "/mnt/${root_device}"
   #mount -o rw,loop,offset=${root_offset} "${image}" "/mnt/${root_device}"
   echo "$MTFMODSVC"| tee "/mnt/${root_device}/lib/systemd/system/raspberrypi-mtf-onboot.service" >/dev/null
   sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' "/mnt/${root_device}/etc/ssh/sshd_config"
   umount "/mnt/${root_device}"
   rmdir "/mnt/${root_device}"
+
+  losetup -d ${loopback}
 else
   echo "File not found: ${image}."
   exit 1

@@ -1,3 +1,4 @@
 *.zip
 *.img
+boot/wpa_supplicant.conf
 boot/mtf/
