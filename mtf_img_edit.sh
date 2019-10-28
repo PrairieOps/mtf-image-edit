@@ -68,9 +68,9 @@ then
   #mount -o rw,loop,offset=${root_offset} "${image}" "/mnt/${root_device}"
   echo "$MTFMODSVC"| tee "/mnt/${root_device}/lib/systemd/system/raspberrypi-mtf-onboot.service" >/dev/null
   sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' "/mnt/${root_device}/etc/ssh/sshd_config"
+  chroot "/mnt/${root_device}" ln -s /lib/systemd/system/raspberrypi-mtf-onboot.service /etc/systemd/system/multi-user.target.wants/raspberrypi-mtf-onboot.service
   umount "/mnt/${root_device}"
   rmdir "/mnt/${root_device}"
-
   losetup -d ${loopback}
 else
   echo "File not found: ${image}."
