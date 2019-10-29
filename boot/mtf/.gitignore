@@ -5,4 +5,5 @@
 
 # ..And some shell scripts.
 !autossh.sh
+!autossh.plugd
 !mtf-pi-install.sh

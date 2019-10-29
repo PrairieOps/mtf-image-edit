@@ -82,6 +82,9 @@ EOF
 
     # Move exec wrapper script for service
     mv /boot/mtf/autossh.sh /opt/mtf/bin/
+
+    # Move plugd action for auto ssh service
+    mv /boot/mtf/autossh.plugd /etc/ifplugd/action.d/autossh
     # Write service template
     echo "$MTFAUTOSSHSVC"| tee "/etc/systemd/system/autossh.service" >/dev/null
     systemctl enable autossh.service && systemctl start autossh.service &
