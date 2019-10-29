@@ -1,11 +1,12 @@
-#!/usr/env bash
+#!/usr/bin/env bash
 
 if [ -d /boot/mtf ]
 then
   # Get MAC address
   mac=$(ip -br link show dev wlan0 | tr -s ' ' | cut -d ' ' -f 3)
   # Set hostname based on mac
-  hostname=$("lib-mtf-$(printf %s "${mac}" | cut -d ':' -f 4,5,6 --output-delimiter=)")
+  hostname="lib-mtf-$(printf %s "${mac}" | cut -d ':' -f 4,5,6 --output-delimiter=)"
+  read -r -d '' \
 HOSTS <<- EOF
 127.0.0.1       localhost
 ::1             localhost ip6-localhost ip6-loopback
@@ -32,7 +33,8 @@ EOF
     # get the server network name/ip
     mtf_ssh_server=$(head -n 1 /boot/mtf/ssh_server)
     # set the port based on the last two digits in the mac address
-    tunnel_port=$(99"$(printf %s "${mac}" | grep -o "[0-9]" | tr -d '\n'| tail -c 2)")
+    tunnel_port=99"$(printf %s "${mac}" | grep -o "[0-9]" | tr -d '\n'| tail -c 2)"
+    read -r -d '' \
 MTFAUTOSSHSVC <<- EOF
 [Unit]
 Description=SSH tunnel to specified remote host
