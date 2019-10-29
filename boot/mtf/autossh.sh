@@ -14,6 +14,9 @@ Host ${hostname}
   HostName 127.0.0.1
   Port ${tunnel_port}
   StrictHostKeyChecking no
+  ExitOnForwardFailure yes
+  ServerAliveInterval 60
+  ServerAliveCountMax 3
 
 EOF
 
@@ -26,4 +29,4 @@ echo "$MTFREMOTESSHCONFIG"| tee "/home/pi/.remotesshconfig/${hostname}" >/dev/nu
 scp "/home/pi/.remotesshconfig/${hostname}" "mtf_ssh_server:~/.ssh/config.d/${hostname}"
 
 # start tunnel
-/usr/bin/ssh -NT -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3 mtf_ssh_tunnel
+/usr/bin/ssh -NT mtf_ssh_tunnel

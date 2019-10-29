@@ -10,7 +10,6 @@ After=network.target
 User=pi
 
 ExecStart=/bin/bash /opt/mtf/bin/autossh.sh
-  /usr/bin/ssh -NT -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3 mtf_ssh_tunnel
 
 RestartSec=5
 Restart=always
