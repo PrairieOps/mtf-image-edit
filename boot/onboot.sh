@@ -66,6 +66,9 @@ Host mtf_ssh_tunnel
   IdentityFile ~/.ssh/id_rsa
   RemoteForward ${tunnel_port} 127.0.0.1:22
   StrictHostKeyChecking no
+  ExitOnForwardFailure yes
+  ServerAliveInterval 60
+  ServerAliveCountMax 3
 
 Host mtf_ssh_server
   HostName ${mtf_ssh_server}

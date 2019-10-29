@@ -14,9 +14,6 @@ Host ${hostname}
   HostName 127.0.0.1
   Port ${tunnel_port}
   StrictHostKeyChecking no
-  ExitOnForwardFailure yes
-  ServerAliveInterval 60
-  ServerAliveCountMax 3
 
 EOF
 
