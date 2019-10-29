@@ -35,3 +35,4 @@ To do so:
   - connect to your ssh server as the user `pi` using the ssh key you provided earlier
   - see which sensors have contacted the ssh server: `ls .ssh/config.d` you'll have one file per sensor, with names like `lib-mtf-xxxxxx`
   - connect to a sensor: `ssh lib-mtf-xxxxxx`
+  - run the mtf setup script: `/opt/mtf/bin/mtf-pi-install.sh`
