@@ -76,33 +76,15 @@ Host mtf_ssh_server
 
 EOF
 
-#    # write the ssh config for seamless connections from mtf_ssh_server
-#    read -r -d '' \
-#MTFREMOTESSHCONFIG <<- EOF
-#Host ${hostname}
-#  User pi
-#  HostName 127.0.0.1
-#  Port ${tunnel_port}
-#  StrictHostKeyChecking no
-#
-#EOF
     # apply local ssh config
     echo "$MTFSSHCONFIG"| tee "/home/pi/.ssh/config" >/dev/null
     chown 1000:1000 /home/pi/.ssh/config
-
-    # apply remote ssh config
-    sudo -u pi ssh mtf_ssh_server 'mkdir -p ~/.ssh/config.d && echo "Include config.d/*">~/.ssh/config'
-    mkdir /tmp/remotesshconfig
-    echo "$MTFREMOTESSHCONFIG"| tee "/tmp/remotesshconfig/${hostname}" >/dev/null
-    chown 1000:1000 /tmp/remotesshconfig/${hostname}
-    sudo -u pi scp "/tmp/remotesshconfig/${hostname}" mtf_ssh_server:~/.ssh/config.d/${hostname}
 
     # Move exec wrapper script for service
     mv /boot/mtf/autossh.sh /opt/mtf/bin/
     # Write service template
     echo "$MTFAUTOSSHSVC"| tee "/etc/systemd/system/autossh.service" >/dev/null
     systemctl enable autossh.service && systemctl start autossh.service &
-    #systemctl enable autossh.service
   fi
   # Set Wifi to auto reconnect if we have the script to do it
   if [ -f /etc/wpa_supplicant/ifupdown.sh ]

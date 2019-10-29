@@ -9,7 +9,6 @@ USAGE <<- EOF
 
 EOF
 
-# After=sshswitch.service
 read -r -d '' \
 MTFMODSVC <<- EOF
 [Unit]
@@ -51,11 +50,8 @@ then
   loopback=$(losetup --find --partscan --show  ${image})
   # Edit the boot partition
   boot_device="$(fdisk -l ${image} -o 'device,start,type' | grep 'W95 FAT32 (LBA)' | tr -s ' ' | cut -d ' ' -f 1)"
-  #boot_start="$(fdisk -l ${image} -o 'device,start,type' | grep 'W95 FAT32 (LBA)' | tr -s ' ' | cut -d ' ' -f 2)"
-  #boot_offset=$(($boot_start * 512))
   mkdir -p "/mnt/${boot_device}"
   mount "${loopback}p1" -o rw "/mnt/${boot_device}"
-  #mount -o rw,loop,offset=${boot_offset} "${image}" "/mnt/${boot_device}"
   cp -r boot/mtf "/mnt/${boot_device}/"
   cp boot/wpa_supplicant.conf "/mnt/${boot_device}/"
   cp boot/onboot.sh "/mnt/${boot_device}/"
@@ -65,11 +61,8 @@ then
 
   # Edit the root partition
   root_device="$(fdisk -l ${image} -o 'device,start,type' | grep 'Linux' | cut -d ' ' -f 1)"
-  #root_start="$(fdisk -l ${image} -o 'device,start,type' | grep 'Linux' | tr -s ' ' | cut -d ' ' -f 2)"
-  #root_offset=$(($root_start * 512))
   mkdir -p "/mnt/${root_device}"
-  sudo mount "${loopback}p2" -o rw "/mnt/${root_device}"
-  #mount -o rw,loop,offset=${root_offset} "${image}" "/mnt/${root_device}"
+  mount "${loopback}p2" -o rw "/mnt/${root_device}"
   echo "$MTFMODSVC"| tee "/mnt/${root_device}/lib/systemd/system/raspberrypi-mtf-onboot.service" >/dev/null
   sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' "/mnt/${root_device}/etc/ssh/sshd_config"
   chroot "/mnt/${root_device}" ln -s /lib/systemd/system/raspberrypi-mtf-onboot.service /etc/systemd/system/multi-user.target.wants/raspberrypi-mtf-onboot.service ||:
