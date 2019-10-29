@@ -59,7 +59,6 @@ then
   cp -r boot/mtf "/mnt/${boot_device}/"
   cp boot/wpa_supplicant.conf "/mnt/${boot_device}/"
   cp boot/onboot.sh "/mnt/${boot_device}/"
-  cp boot/autossh.sh "/mnt/${boot_device}/"
   touch "/mnt/${boot_device}/ssh"
   umount "/mnt/${boot_device}"
   rmdir "/mnt/${boot_device}"
