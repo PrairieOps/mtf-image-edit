@@ -1,0 +1,8 @@
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore
+
+# ..And some shell scripts.
+!autossh.sh
+!mtf-pi-install.sh

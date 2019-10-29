@@ -9,24 +9,27 @@ USAGE <<- EOF
 
 EOF
 
+# After=sshswitch.service
 read -r -d '' \
 MTFMODSVC <<- EOF
 [Unit]
-Description=Copy Measure the Future on boot script.
+Description=Copy and Execute Measure the Future on onboot script.
 ConditionPathExists=/boot/onboot.sh
 Before=dhcpcd.service
+JobRunningTimeoutSec=60
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/bin/bash /boot/onboot.sh
+TimeoutSec=60
+ExecStart=/bin/sh -c "mkdir -p /opt/mtf/bin && mv /boot/onboot.sh /opt/mtf/bin/ && /bin/bash /opt/mtf/bin/onboot.sh"
 
 [Install]
 WantedBy=multi-user.target
 
 EOF
 
-if [  -z "$1" ]; then
+if [ -z "$1" ]; then
   echo "${USAGE}"
   echo "File not specified: Using raspbian_lite-2019-09-30 download."
   download=2019-09-26-raspbian-buster-lite
@@ -56,6 +59,7 @@ then
   cp -r boot/mtf "/mnt/${boot_device}/"
   cp boot/wpa_supplicant.conf "/mnt/${boot_device}/"
   cp boot/onboot.sh "/mnt/${boot_device}/"
+  cp boot/autossh.sh "/mnt/${boot_device}/"
   touch "/mnt/${boot_device}/ssh"
   umount "/mnt/${boot_device}"
   rmdir "/mnt/${boot_device}"
@@ -69,7 +73,7 @@ then
   #mount -o rw,loop,offset=${root_offset} "${image}" "/mnt/${root_device}"
   echo "$MTFMODSVC"| tee "/mnt/${root_device}/lib/systemd/system/raspberrypi-mtf-onboot.service" >/dev/null
   sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' "/mnt/${root_device}/etc/ssh/sshd_config"
-  chroot "/mnt/${root_device}" ln -s /lib/systemd/system/raspberrypi-mtf-onboot.service /etc/systemd/system/multi-user.target.wants/raspberrypi-mtf-onboot.service
+  chroot "/mnt/${root_device}" ln -s /lib/systemd/system/raspberrypi-mtf-onboot.service /etc/systemd/system/multi-user.target.wants/raspberrypi-mtf-onboot.service ||:
   umount "/mnt/${root_device}"
   rmdir "/mnt/${root_device}"
   losetup -d ${loopback}
