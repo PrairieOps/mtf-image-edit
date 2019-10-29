@@ -18,6 +18,7 @@ sudo apt -y install libatlas-base-dev gfortran &> /dev/null
 sudo apt -y install libgtk2.0-dev  &> /dev/null
 sudo apt -y install python2.7-dev python3-dev 
 sudo apt -y install openjdk-8-jdk &> /dev/null
+sudo apt -y install -f &> /dev/null
 
 echo -ne "Begin Measure The Future Installation instructions"
 wget https://github.com/MeasureTheFuture/CVBindings/releases/download/3.4.1/cvbindings_3.4.1_armhf.deb &> /dev/null
