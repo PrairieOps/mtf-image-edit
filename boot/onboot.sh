@@ -38,7 +38,7 @@ ff02::2         ip6-allrouters
 EOF
   echo "$HOSTS"| tee "/etc/hosts" >/dev/null
   echo "$hostname"| tee "/etc/hostname" >/dev/null
-  hostname ${hostname}
+  hostname "${hostname}"
   if [ -f /boot/mtf/id_rsa.pub ] && [ -f /boot/mtf/id_rsa ]
   then
       mkdir -p /home/pi/.ssh

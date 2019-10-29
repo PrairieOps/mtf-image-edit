@@ -23,7 +23,7 @@ echo "$MTFREMOTESSHCONFIG"| tee "/home/pi/.remotesshconfig/${hostname}" >/dev/nu
 
 # send remote ssh config
 /usr/bin/ssh mtf_ssh_server 'mkdir -p ~/.ssh/config.d && echo "Include config.d/*">~/.ssh/config'
-scp "/home/pi/.remotesshconfig/${hostname}" mtf_ssh_server:~/.ssh/config.d/${hostname}
+scp "/home/pi/.remotesshconfig/${hostname}" "mtf_ssh_server:~/.ssh/config.d/${hostname}"
 
 # start tunnel
 /usr/bin/ssh -NT -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3 mtf_ssh_tunnel
