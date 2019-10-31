@@ -55,7 +55,8 @@ EOF
     # get the server network name/ip
     mtf_ssh_server=$(head -n 1 /boot/mtf/ssh_server)
     # set the port based on the last two digits in the mac address
-    tunnel_port=99"$(printf %s "${mac}" | grep -o "[0-9]" | tr -d '\n'| tail -c 2)"
+    ssh_tunnel_port=2"$(printf %s "${mac}" | grep -o "[0-9]" | tr -d '\n'| tail -c 3)"
+    web_tunnel_port=8"$(printf %s "${mac}" | grep -o "[0-9]" | tr -d '\n'| tail -c 3)"
 
     # write the ssh config for seamless connections to mtf_ssh_server
     read -r -d '' \
@@ -64,7 +65,8 @@ Host mtf_ssh_tunnel
   HostName ${mtf_ssh_server}
   User pi
   IdentityFile ~/.ssh/id_rsa
-  RemoteForward ${tunnel_port} 127.0.0.1:22
+  RemoteForward ${ssh_tunnel_port} 127.0.0.1:22
+  RemoteForward ${web_tunnel_port} 127.0.0.1:80
   StrictHostKeyChecking no
   ExitOnForwardFailure yes
   ServerAliveInterval 60
