@@ -1,3 +1,4 @@
 *.zip
 *.img
+*.img.original
 boot/wpa_supplicant.conf

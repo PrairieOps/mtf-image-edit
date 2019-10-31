@@ -60,12 +60,27 @@ then
   umount "/mnt/${boot_device}"
   rmdir "/mnt/${boot_device}"
 
+  # Check image size
+  desired_img_size=6442449920
+  starting_img_size=$(stat -c %s "${image}")
+
+  # Extend disk image if needed
+  if [ "$desired_img_size" -gt "$starting_img_size" ]
+  then
+    add_bytes=$(( desired_img_size - starting_img_size ))
+    dd if=/dev/zero bs=1M count=$(( add_bytes / 1024 / 1024 )) >> "${image}"
+    parted "${image}" resizepart 2 100%
+    e2fsck -f "${loopback}p2"
+    resize2fs "${loopback}p2"
+  fi
+
   # Edit the root partition
   root_device="$(fdisk -l ${image} -o 'device,start,type' | grep 'Linux' | cut -d ' ' -f 1)"
   mkdir -p "/mnt/${root_device}"
   mount "${loopback}p2" -o rw "/mnt/${root_device}"
   sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' "/mnt/${root_device}/etc/ssh/sshd_config"
 
+  # Enable our first boot script.
   echo "$MTFMODSVC"| tee "/mnt/${root_device}/lib/systemd/system/raspberrypi-mtf-onboot.service" >/dev/null
   chroot "/mnt/${root_device}" ln -s /lib/systemd/system/raspberrypi-mtf-onboot.service /etc/systemd/system/multi-user.target.wants/raspberrypi-mtf-onboot.service ||:
 
@@ -87,6 +102,9 @@ then
 
   # replace a stock resolv.conf
   cp etc/resolv.conf "/mnt/${root_device}/etc"
+
+  # Delete ssh host keys
+  rm -v "/mnt/${root_device}/etc/ssh/ssh_host_"*
 
   # Unmount and clean up
   #umount "/mnt/${root_device}"
