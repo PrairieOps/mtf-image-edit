@@ -30,9 +30,9 @@ EOF
 
 if [ -z "$1" ]; then
   echo "${USAGE}"
-  echo "File not specified: Using raspbian_lite-2019-09-30 download."
-  download=2019-09-26-raspbian-buster-lite
-  stat ${download}.zip >/dev/null || curl https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-09-30/${download}.zip -O -J
+  echo "File not specified: Using raspbian-stretch-lite-2019-04-08 download."
+  download=2019-04-08-raspbian-stretch-lite
+  stat ${download}.zip >/dev/null || curl https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/${download}.zip -O -J
   stat ${download}.img >/dev/null || unzip ${download}.zip
   image=${download}.img
 else
