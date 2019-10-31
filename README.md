@@ -25,7 +25,30 @@ You can specify an image, or run without arguments to have the tool download a r
 
 `sudo ./mtf_img_edit.sh [image file (optional)]`
 
-You can then write than image to sd cards for use in sensors.
+You can then copy the resulting image to a usb key. To do so:
+
+
+Plug the key in and identify it by looking at it's storage capacity.
+```
+lsblk
+```
+In this case, the primary partition of the usb key is located at `/dev/sda1`
+
+
+Mount the device and copy the image over to the key
+```
+sudo mkdir -p /media/usb
+sudo mount /dev/sda1 /media/usb/
+sudo cp 2019-04-08-raspbian-stretch-lite.img /media/usb/
+```
+
+Unmount the usb key when you are finished.
+```
+sudo umount /media/usb
+```
+
+You may now remove the usb key and use a real computer to write the image to sd cards for use in sensors.
+
 
 ### Connecting to the sensors.
 
