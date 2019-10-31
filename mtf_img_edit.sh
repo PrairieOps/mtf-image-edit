@@ -55,6 +55,7 @@ then
   cp -r boot/mtf "/mnt/${boot_device}/"
   cp boot/wpa_supplicant.conf "/mnt/${boot_device}/"
   cp boot/onboot.sh "/mnt/${boot_device}/"
+  cp boot/config.txt "/mnt/${boot_device}/"
   touch "/mnt/${boot_device}/ssh"
   umount "/mnt/${boot_device}"
   rmdir "/mnt/${boot_device}"
@@ -63,12 +64,34 @@ then
   root_device="$(fdisk -l ${image} -o 'device,start,type' | grep 'Linux' | cut -d ' ' -f 1)"
   mkdir -p "/mnt/${root_device}"
   mount "${loopback}p2" -o rw "/mnt/${root_device}"
-  echo "$MTFMODSVC"| tee "/mnt/${root_device}/lib/systemd/system/raspberrypi-mtf-onboot.service" >/dev/null
   sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' "/mnt/${root_device}/etc/ssh/sshd_config"
+
+  echo "$MTFMODSVC"| tee "/mnt/${root_device}/lib/systemd/system/raspberrypi-mtf-onboot.service" >/dev/null
   chroot "/mnt/${root_device}" ln -s /lib/systemd/system/raspberrypi-mtf-onboot.service /etc/systemd/system/multi-user.target.wants/raspberrypi-mtf-onboot.service ||:
-  umount "/mnt/${root_device}"
-  rmdir "/mnt/${root_device}"
-  losetup -d ${loopback}
+
+  # copy over temp assets for use inside chroot.
+  cp tmp/* "/mnt/${root_device}/tmp"
+
+  # copy resolve.conf from host to ensure networking functions within the chroot.
+  cp /etc/resolv.conf "/mnt/${root_device}/etc"
+
+  # hardware clock setup
+  cp lib/udev/hwclock-set "/mnt/${root_device}/lib/udev/"
+  chroot "/mnt/${root_device}" /tmp/./rtc-config.sh
+
+  # Install measure the future into the image
+  chroot "/mnt/${root_device}" /tmp/./mtf-pi-install.sh mtf
+
+  # Cleanup /tmp
+  rm -rf "/mnt/${root_device}/tmp/*"
+
+  # replace a stock resolv.conf
+  cp etc/resolv.conf "/mnt/${root_device}/etc"
+
+  # Unmount and clean up
+  #umount "/mnt/${root_device}"
+  #rmdir "/mnt/${root_device}"
+  #losetup -d ${loopback}
 else
   echo "File not found: ${image}."
   exit 1
