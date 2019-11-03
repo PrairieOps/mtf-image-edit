@@ -34,7 +34,8 @@ if [ -z "$1" ]; then
   download=2019-04-08-raspbian-stretch-lite
   stat ${download}.zip >/dev/null || curl https://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/${download}.zip -O -J
   stat ${download}.img >/dev/null || unzip ${download}.zip
-  image=${download}.img
+  image=${download}-mtf.img
+  stat ${image} || cp ${download}.img ${download}-mtf.img
 else
   image=${1}
 fi
@@ -47,21 +48,11 @@ fi
 
 if [ -f "$image" ]
 then
-  loopback=$(losetup --find --partscan --show  ${image})
-  # Edit the boot partition
   boot_device="$(fdisk -l ${image} -o 'device,start,type' | grep 'W95 FAT32 (LBA)' | tr -s ' ' | cut -d ' ' -f 1)"
-  mkdir -p "/mnt/${boot_device}"
-  mount "${loopback}p1" -o rw "/mnt/${boot_device}"
-  cp -r boot/mtf "/mnt/${boot_device}/"
-  cp boot/wpa_supplicant.conf "/mnt/${boot_device}/"
-  cp boot/onboot.sh "/mnt/${boot_device}/"
-  cp boot/config.txt "/mnt/${boot_device}/"
-  touch "/mnt/${boot_device}/ssh"
-  umount "/mnt/${boot_device}"
-  rmdir "/mnt/${boot_device}"
+  root_device="$(fdisk -l ${image} -o 'device,start,type' | grep 'Linux' | cut -d ' ' -f 1)"
 
   # Check image size
-  desired_img_size=6442449920
+  desired_img_size=3221225000
   starting_img_size=$(stat -c %s "${image}")
 
   # Extend disk image if needed
@@ -70,12 +61,30 @@ then
     add_bytes=$(( desired_img_size - starting_img_size ))
     dd if=/dev/zero bs=1M count=$(( add_bytes / 1024 / 1024 )) >> "${image}"
     parted "${image}" resizepart 2 100%
-    e2fsck -f "${loopback}p2"
-    resize2fs "${loopback}p2"
   fi
 
+  # Treat the image as a loopback device
+  loopback=$(losetup --find --partscan --show  ${image})
+
+  # Make sure the second partition (root) takes full advantage of the image size
+  partx "${loopback}"
+  e2fsck -f "${loopback}p2"
+  resize2fs "${loopback}p2"
+
+  # Edit the boot partition
+  mkdir -p "/mnt/${boot_device}"
+  mount "${loopback}p1" -o rw "/mnt/${boot_device}"
+  cp -r boot/mtf "/mnt/${boot_device}/"
+  cp boot/wpa_supplicant.conf "/mnt/${boot_device}/"
+  cp boot/onboot.sh "/mnt/${boot_device}/"
+  cp boot/config.txt "/mnt/${boot_device}/"
+  touch "/mnt/${boot_device}/ssh"
+
+  # Unmount
+  umount "/mnt/${boot_device}"
+  rmdir "/mnt/${boot_device}"
+
   # Edit the root partition
-  root_device="$(fdisk -l ${image} -o 'device,start,type' | grep 'Linux' | cut -d ' ' -f 1)"
   mkdir -p "/mnt/${root_device}"
   mount "${loopback}p2" -o rw "/mnt/${root_device}"
   sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' "/mnt/${root_device}/etc/ssh/sshd_config"
@@ -90,6 +99,9 @@ then
   # copy resolve.conf from host to ensure networking functions within the chroot.
   cp /etc/resolv.conf "/mnt/${root_device}/etc"
 
+  # add policy-rc.d to avoid running daemons in chroot.
+  cp usr/sbin/policy-rc.d  "/mnt/${root_device}/usr/sbin"
+
   # hardware clock setup
   cp lib/udev/hwclock-set "/mnt/${root_device}/lib/udev/"
   chroot "/mnt/${root_device}" /tmp/./rtc-config.sh
@@ -97,19 +109,25 @@ then
   # Install measure the future into the image
   chroot "/mnt/${root_device}" /tmp/./mtf-pi-install.sh mtf
 
+  # Clean apt cache
+  chroot "/mnt/${root_device}" apt clean
+
   # Cleanup /tmp
   rm -rf "/mnt/${root_device}/tmp/*"
 
   # replace a stock resolv.conf
   cp etc/resolv.conf "/mnt/${root_device}/etc"
 
+  # remove custom policy-rc.d
+  rm "/mnt/${root_device}/usr/sbin/policy-rc.d"
+
   # Delete ssh host keys
   rm -v "/mnt/${root_device}/etc/ssh/ssh_host_"*
 
   # Unmount and clean up
-  #umount "/mnt/${root_device}"
-  #rmdir "/mnt/${root_device}"
-  #losetup -d ${loopback}
+  umount "/mnt/${root_device}"
+  rmdir "/mnt/${root_device}"
+  losetup -d ${loopback}
 else
   echo "File not found: ${image}."
   exit 1
