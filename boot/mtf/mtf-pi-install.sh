@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Configuring java certificates
-dpkg-reconfigure ca-certificates-java openjdk-8-jre-headless openjdk-8-jdk-headless openjdk-8-jdk openjdk-8-jre
-
 mtf_database_pass="mtf"
 echo -ne "Configuring postgreSQL... \n"
 sed -i -e "s/password/${mtf_database_pass}/g" /usr/local/mtf/bin/scout.json

@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 mtf_database_pass="$1"
 
-# Tidy up the Raspbian installation.
+# If we're in a chroot
+if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ]; then
+  mount -t proc none /proc
+fi
+
+# Set locale
+update-locale "LANG=en_US.UTF-8"
+locale-gen --purge "en_US.UTF-8"
+dpkg-reconfigure --frontend noninteractive locales
+
 echo -ne "Preparing Raspbian... "
+# Update mirrors
 apt update -y
-apt upgrade -y
+# Tidy up the Raspbian installation.
 apt -y purge --auto-remove gvfs-backends gvfs-fuse
-apt -y install vim
 echo -ne " Done\n"
 
 # Install OpenCV Dependencies
@@ -16,7 +25,7 @@ apt -y install libjpeg-dev libtiff5-dev libjasper-dev libpng12-dev
 apt -y install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
 apt -y install libxvidcore-dev libx264-dev
 apt -y install libatlas-base-dev gfortran
-apt -y install libgtk2.0-dev 
+apt -y install libgtk2.0-dev libgtk-3-0
 apt -y install python2.7-dev python3-dev 
 apt -y install openjdk-8-jdk
 
@@ -38,3 +47,11 @@ echo -ne " Done\n"
 echo -ne "Installing postgreSQL... \n"
 apt -y install postgresql
 echo -ne " Done\n"
+
+# If we're in a chroot
+if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ]; then
+  umount /proc
+fi
+
+
+exit
