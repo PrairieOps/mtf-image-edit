@@ -1,0 +1,7 @@
+label: dos
+label-id: 0xcd48578f
+device: 2019-04-08-raspbian-stretch.img
+unit: sectors
+
+2019-04-08-raspbian-stretch.img1 : start=        8192, size=       87851, type=c
+2019-04-08-raspbian-stretch.img2 : start=       98304, size=     6701056, type=83

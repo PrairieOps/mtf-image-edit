@@ -55,8 +55,8 @@ EOF
     # get the server network name/ip
     mtf_ssh_server=$(head -n 1 /boot/mtf/ssh_server)
     # set the port based on the last two digits in the mac address
-    ssh_tunnel_port=2"$(printf %s "${mac}" | grep -o "[0-9]" | tr -d '\n'| tail -c 3)"
-    web_tunnel_port=8"$(printf %s "${mac}" | grep -o "[0-9]" | tr -d '\n'| tail -c 3)"
+    ssh_tunnel_port=52"$(printf %s "${mac}" | grep -o "[0-9]" | tr -d '\n'| tail -c 3)"
+    web_tunnel_port=58"$(printf %s "${mac}" | grep -o "[0-9]" | tr -d '\n'| tail -c 3)"
 
     # write the ssh config for seamless connections to mtf_ssh_server
     read -r -d '' \
@@ -91,15 +91,13 @@ EOF
     mv /boot/mtf/autossh.plugd /etc/ifplugd/action.d/autossh
     # Write service template
     echo "$MTFAUTOSSHSVC"| tee "/etc/systemd/system/autossh.service" >/dev/null
-    systemctl enable autossh.service && systemctl start autossh.service &
+    ln -s /etc/systemd/system/autossh.service /etc/systemd/system/multi-user.target.wants/autossh.service
+    systemctl start autossh.service &
   fi
   # Set Wifi to auto reconnect if we have the script to do it
   if [ -f /etc/wpa_supplicant/ifupdown.sh ]
   then
     ln -s /etc/wpa_supplicant/ifupdown.sh /etc/ifplugd/action.d/ifupdown
   fi
-
-  # Move mtf installer script
-  mv /boot/mtf/mtf-pi-install.sh /opt/mtf/bin/
 fi
 

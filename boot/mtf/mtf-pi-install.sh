@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Set hardware clock
+hwclock -w
+
 mtf_database_pass="mtf"
 echo -ne "Configuring postgreSQL... \n"
 sed -i -e "s/password/${mtf_database_pass}/g" /usr/local/mtf/bin/scout.json
@@ -19,7 +22,7 @@ EOF
 
 
 sudo -E -u postgres psql -v pass="'${mtf_database_pass}'" -f /usr/local/mtf/bin/db-bootstrap.sql
-/usr/local/mtf/bin/ migrate -database postgres://mothership_user:"${mtf_database_pass}"@localhost:5432/mothership -path /usr/local/mtf/bin/migrations up
+/usr/local/mtf/bin/migrate -database postgres://mothership_user:"${mtf_database_pass}"@localhost:5432/mothership -path /usr/local/mtf/bin/migrations up
 echo -ne " Done\n"
 
 # Spin up the mothership and scout.
@@ -43,7 +46,7 @@ EOF
 
 # Enable scout service
 systemctl daemon-reload
-systemctl restart mtf-pi-scout.service
+systemctl start mtf-pi-scout.service
 systemctl enable mtf-pi-scout.service
 
 echo -ne " Done\n"

@@ -7,16 +7,20 @@ if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ]; then
 fi
 
 # Set locale
-update-locale "LANG=en_US.UTF-8"
-locale-gen --purge "en_US.UTF-8"
+export LANGUAGE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+sed -i 's/en_GB.UTF-8 UTF-8/# en_GB.UTF-8 UTF-8/' "/etc/locale.gen"
+sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' "/etc/locale.gen"
+sed -i 's/en_GB.UTF-8/en_US.UTF-8/' "/etc/default/locale"
+locale-gen
+update-locale
 dpkg-reconfigure --frontend noninteractive locales
 
-echo -ne "Preparing Raspbian... "
-# Update mirrors
-apt update -y
-# Tidy up the Raspbian installation.
-apt -y purge --auto-remove gvfs-backends gvfs-fuse
-echo -ne " Done\n"
+# Set timezone
+ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime
+dpkg-reconfigure -f noninteractive tzdata
 
 # Install OpenCV Dependencies
 echo -ne "Installing OpenCV Dependencies... "
@@ -30,17 +34,20 @@ apt -y install python2.7-dev python3-dev
 apt -y install openjdk-8-jdk
 
 echo -ne "Begin Measure The Future Installation instructions"
-dpkg -i /tmp/cvbindings_3.4.1_armhf.deb
+dpkg -i /tmp/cvbindings_3.4.1_armhf.deb && rm /tmp/cvbindings_3.4.1_armhf.deb
 
-dpkg -i /tmp/opencv_3.4.1_armhf.deb
+dpkg -i /tmp/opencv_3.4.1_armhf.deb && rm /tmp/opencv_3.4.1_armhf.deb
 echo -ne " Done\n"
 
 # Install Measure The Future
 echo -ne "Installing Measure The Future... "
-dpkg -i /tmp/mtf_0.0.24_armhf.deb
+dpkg -i /tmp/mtf_0.0.24_armhf.deb && rm /tmp/mtf_0.0.24_armhf.deb
 
-echo 'export PATH=$PATH:/usr/local/mtf/bin' >> .profile
-source .profile
+# Make as much space as possible.
+apt -y autoremove
+
+echo 'export PATH=$PATH:/usr/local/mtf/bin' >> /etc/profile.d/mtf.sh
+source /etc/profile.d/mtf.sh
 echo -ne " Done\n"
 
 # Bootstrap the Database.

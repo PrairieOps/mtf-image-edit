@@ -4,15 +4,15 @@
 mac=$(ip -br link show dev wlan0 | tr -s ' ' | cut -d ' ' -f 3)
 # Set hostname based on mac
 hostname="lib-mtf-$(printf %s "${mac}" | cut -d ':' -f 4,5,6 --output-delimiter=)"
-# set the port based on the last two digits in the mac address
-tunnel_port=99"$(printf %s "${mac}" | grep -o "[0-9]" | tr -d '\n'| tail -c 2)"
+# set the port based on the last digits in the mac address
+ssh_tunnel_port=52"$(printf %s "${mac}" | grep -o "[0-9]" | tr -d '\n'| tail -c 3)"
 
 read -r -d '' \
 MTFREMOTESSHCONFIG <<- EOF
 Host ${hostname}
   User pi
   HostName 127.0.0.1
-  Port ${tunnel_port}
+  Port ${ssh_tunnel_port}
   StrictHostKeyChecking no
 
 EOF
